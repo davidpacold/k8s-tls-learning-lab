@@ -1,0 +1,42 @@
+# charts/test-app/templates/ingressroute.yaml
+{{- if eq .Values.ingress.controller "traefik" }}
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ .Release.Name }}-api-http
+spec:
+  entryPoints:
+    - web
+  routes:
+    {{- range .Values.services }}
+    - match: Host(`{{ .host }}`)
+      kind: Rule
+      {{- if and $.Values.ingress.tls $.Values.ingress.sslRedirect }}
+      middlewares:
+        - name: {{ $.Release.Name }}-redirect-https
+      {{- end }}
+      services:
+        - name: {{ $.Release.Name }}-{{ .name }}
+          port: {{ $.Values.service.port }}
+    {{- end }}
+{{- if .Values.ingress.tls }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ .Release.Name }}-api-tls
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    {{- range .Values.services }}
+    - match: Host(`{{ .host }}`)
+      kind: Rule
+      services:
+        - name: {{ $.Release.Name }}-{{ .name }}
+          port: {{ $.Values.service.port }}
+    {{- end }}
+  tls:
+    secretName: {{ printf "%s-tls" .Release.Name }}
+{{- end }}
+{{- end }}
