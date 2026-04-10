@@ -1,0 +1,35 @@
+# charts/test-app/values.yaml
+
+# List of API services to deploy — each gets its own Deployment, Service, and Ingress rule
+services:
+  - name: api1
+    host: api1.local
+  - name: api2
+    host: api2.local
+  - name: api3
+    host: api3.local
+
+# Application image (same image for all services, differentiated by SERVICE_NAME env var)
+image:
+  repository: test-app
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Number of pod replicas per service
+replicaCount: 1
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+# Ingress configuration
+ingress:
+  tls: true              # uses nginx default fake cert (no secretName needed)
+
+# ingress-nginx subchart overrides
+ingress-nginx:
+  controller:
+    service:
+      type: LoadBalancer
