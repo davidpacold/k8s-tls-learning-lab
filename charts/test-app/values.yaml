@@ -38,12 +38,14 @@ ingress:
   #   Set generateCert: false, leave externalCert.crt and externalCert.key empty.
   #   Run before helm install:
   #     kubectl create secret tls test-app-tls --cert=your.crt --key=your.key -n default
+  #   WARNING: If switching FROM generateCert: true, run helm upgrade first (to drop Helm
+  #   ownership of the old secret), then create the new secret with kubectl.
   #
   # Mode 3 — Paste cert into values
   #   Set generateCert: false, paste PEM content into externalCert.crt and externalCert.key.
   #   Helm creates the K8s Secret from these values.
 
-  generateCert: true
+  generateCert: false
   certDays: 3650         # self-signed cert validity in days (only used when generateCert: true)
 
   # Mode 3: paste PEM content here (leave empty for modes 1 and 2)
@@ -55,7 +57,17 @@ ingress:
   # Paste the PEM of your root or intermediate CA here.
   # Used when generateCert: false — pods will trust any cert signed by this CA.
   # Leave empty when generateCert: true (the self-signed cert itself is injected instead).
-  corporateCA: ""
+  corporateCA: |
+    -----BEGIN CERTIFICATE-----
+    MIIBazCCARCgAwIBAgIQcVlu4tnpP1KZyH4jr0/UVTAKBggqhkjOPQQDAjAVMRMw
+    EQYDVQQDEwpNeSBSb290IENBMB4XDTI2MDMyMDAzNDUxNloXDTM2MDMyMDAzNDUx
+    NlowFTETMBEGA1UEAxMKTXkgUm9vdCBDQTBZMBMGByqGSM49AgEGCCqGSM49AwEH
+    A0IABNOMt0JGO1cl1/tFh9dRBUYBcPaX+EbgWyCCPodi1BRJzgGq1EM0+4OFyUAk
+    TbFwqTwGqdKWiP43p5RdXjrgra2jQjBAMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0P
+    AQH/BAQDAgEGMB0GA1UdDgQWBBRglJxYhFgFg2MlCgTddptDdZKUnzAKBggqhkjO
+    PQQDAgNJADBGAiEArHxP611Edry/76ZoBTaGO62KBRbzsTfUu98MkBsC5o4CIQDV
+    P6N6Um9vmIg33cVzPTxulOfq6XMEW/LH7VEG5+dA9Q==
+    -----END CERTIFICATE-----
 
 # ingress-nginx subchart overrides
 ingress-nginx:
