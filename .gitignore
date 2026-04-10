@@ -1,6 +1,5 @@
 # Helm downloaded subcharts
 charts/*/charts/
-charts/*/.helmignore
 
 # Python
 __pycache__/
@@ -11,6 +10,10 @@ __pycache__/
 dist/
 .venv/
 venv/
+
+# Secrets
+.env
+*.env
 
 # macOS
 .DS_Store
