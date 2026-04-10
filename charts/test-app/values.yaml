@@ -89,10 +89,5 @@ ingress-nginx:
 # traefik subchart — set enabled: true when switching to traefik
 traefik:
   enabled: false
-  ports:
-    web:
-      port: 80
-    websecure:
-      port: 443
   service:
     type: LoadBalancer

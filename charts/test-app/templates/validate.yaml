@@ -1,0 +1,8 @@
+# charts/test-app/templates/validate.yaml
+# Validation guards — fail fast with a clear message when values are misconfigured.
+{{- if and (eq .Values.ingress.controller "traefik") (index .Values "ingress-nginx" "enabled") }}
+{{- fail "ingress.controller is 'traefik' but ingress-nginx.enabled is true. Set ingress-nginx.enabled: false when using traefik." }}
+{{- end }}
+{{- if and (eq .Values.ingress.controller "nginx") .Values.traefik.enabled }}
+{{- fail "ingress.controller is 'nginx' but traefik.enabled is true. Set traefik.enabled: false when using nginx." }}
+{{- end }}
