@@ -312,7 +312,7 @@ traefik:
 
 ```bash
 helm dep update charts/test-app
-helm upgrade --install test-app charts/test-app --wait
+helm upgrade --install test-app charts/test-app --namespace default --wait
 kubectl get ingressroute    # verify Traefik CRDs deployed
 curl -s http://api1.local/hello    # port 80
 curl -sk https://api1.local/hello  # port 443
@@ -334,7 +334,9 @@ traefik:
 
 ```bash
 helm dep update charts/test-app
-helm upgrade --install test-app charts/test-app --wait
+helm upgrade --install test-app charts/test-app --namespace default --wait
+kubectl get ingress    # verify nginx Ingress deployed
+curl -sk https://api1.local/hello
 ```
 
 ---
