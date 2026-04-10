@@ -80,7 +80,7 @@ dependencies:
     condition: ingress-nginx.enabled
 
   - name: traefik
-    version: "33.2.1"        # verify with helm search repo traefik/traefik
+    version: "39.0.7"        # verify with helm search repo traefik/traefik
     repository: "https://traefik.github.io/charts"
     condition: traefik.enabled
 ```

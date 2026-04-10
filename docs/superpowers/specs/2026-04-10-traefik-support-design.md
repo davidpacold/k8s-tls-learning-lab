@@ -6,7 +6,7 @@
 
 **Architecture:** Both ingress-nginx and traefik are declared as subchart dependencies in `Chart.yaml` with Helm `condition` fields. Template files are split by controller — existing nginx templates get a guard, new Traefik-specific templates render only when Traefik is selected. The `deployment.yaml` lookup for `hostAliases` branches on the controller value to find the right service name.
 
-**Tech Stack:** Helm 3, Traefik v3 (`traefik.io/v1alpha1` API group), Traefik Helm chart `33.2.1`, ingress-nginx `4.11.3`
+**Tech Stack:** Helm 3, Traefik v3 (`traefik.io/v1alpha1` API group), Traefik Helm chart `39.0.7`, ingress-nginx `4.11.3`
 
 ---
 
@@ -55,7 +55,7 @@ dependencies:
 
   - name: traefik
     repository: https://traefik.github.io/charts
-    version: "33.2.1"
+    version: "39.0.7"
     condition: traefik.enabled
 ```
 
