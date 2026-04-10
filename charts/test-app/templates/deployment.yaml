@@ -1,4 +1,7 @@
 # charts/test-app/templates/deployment.yaml
+{{- $ingressSvc := lookup "v1" "Service" .Release.Namespace (printf "%s-ingress-nginx-controller" .Release.Name) }}
+{{- $ingressIP := "" }}
+{{- if $ingressSvc }}{{- $ingressIP = $ingressSvc.spec.clusterIP }}{{- end }}
 {{- range .Values.services }}
 ---
 apiVersion: apps/v1
@@ -17,6 +20,14 @@ spec:
       labels:
         app: {{ $.Release.Name }}-{{ .name }}
     spec:
+      {{- if $ingressIP }}
+      hostAliases:
+        - ip: {{ $ingressIP }}
+          hostnames:
+            {{- range $.Values.services }}
+            - {{ .host }}
+            {{- end }}
+      {{- end }}
       initContainers:
         - name: trust-ca
           image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
