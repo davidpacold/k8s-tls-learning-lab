@@ -1,0 +1,29 @@
+# charts/test-app/templates/deployment.yaml
+{{- range .Values.services }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $.Release.Name }}-{{ .name }}
+  labels:
+    app: {{ $.Release.Name }}-{{ .name }}
+spec:
+  replicas: {{ $.Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ $.Release.Name }}-{{ .name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $.Release.Name }}-{{ .name }}
+    spec:
+      containers:
+        - name: api
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ $.Values.service.targetPort }}
+          env:
+            - name: SERVICE_NAME
+              value: {{ .name | quote }}
+{{- end }}
