@@ -5,6 +5,9 @@ metadata:
   name: {{ .Release.Name }}-api
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
+    {{- if not .Values.ingress.sslRedirect }}
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    {{- end }}
 spec:
   ingressClassName: nginx
   rules:

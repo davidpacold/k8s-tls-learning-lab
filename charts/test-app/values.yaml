@@ -45,6 +45,11 @@ ingress:
   #   Set generateCert: false, paste PEM content into externalCert.crt and externalCert.key.
   #   Helm creates the K8s Secret from these values.
 
+  # ssl-redirect controls whether nginx redirects HTTP → HTTPS (default: true).
+  # Set to false when TLS is terminated upstream (WAF, load balancer) — prevents
+  # the redirect loop that would otherwise occur when backend traffic arrives as HTTP.
+  sslRedirect: true
+
   generateCert: false
   certDays: 3650         # self-signed cert validity in days (only used when generateCert: true)
 
