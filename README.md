@@ -282,12 +282,60 @@ This adds `nginx.ingress.kubernetes.io/ssl-redirect: "false"` to the Ingress ann
 | `image.tag` | latest | Docker image tag |
 | `replicaCount` | 1 | Replicas per service |
 | `ingress.tls` | true | Enable HTTPS on the ingress |
-| `ingress.sslRedirect` | true | Redirect HTTP → HTTPS. Set false for WAF/SSL offloading. |
+| `ingress.controller` | nginx | Ingress controller to use: `nginx` or `traefik`. Also flip the `enabled` flags below. |
+| `ingress.sslRedirect` | false | Redirect HTTP → HTTPS. Default false = port 80 and 443 work simultaneously. |
 | `ingress.generateCert` | true | Mode 1: Helm auto-generates cert. Set false for modes 2 or 3. |
 | `ingress.certDays` | 3650 | Self-signed cert validity in days (Mode 1 only) |
 | `ingress.externalCert.crt` | "" | PEM cert content for Mode 3 (paste here) |
 | `ingress.externalCert.key` | "" | PEM private key content for Mode 3 |
 | `ingress.corporateCA` | "" | Root/intermediate CA PEM — injected into all pod trust stores |
+
+---
+
+## Switching Controllers
+
+The chart supports nginx and Traefik v3. Both are bundled as subchart dependencies — only the enabled one is installed.
+
+### Switch to Traefik
+
+```yaml
+# values.yaml
+ingress:
+  controller: traefik
+
+ingress-nginx:
+  enabled: false
+
+traefik:
+  enabled: true
+```
+
+```bash
+helm dep update charts/test-app
+helm upgrade --install test-app charts/test-app --wait
+kubectl get ingressroute    # verify Traefik CRDs deployed
+curl -s http://api1.local/hello    # port 80
+curl -sk https://api1.local/hello  # port 443
+```
+
+### Switch back to nginx
+
+```yaml
+# values.yaml
+ingress:
+  controller: nginx
+
+ingress-nginx:
+  enabled: true
+
+traefik:
+  enabled: false
+```
+
+```bash
+helm dep update charts/test-app
+helm upgrade --install test-app charts/test-app --wait
+```
 
 ---
 
