@@ -1,5 +1,6 @@
 # charts/test-app/templates/deployment.yaml
-{{- $ingressSvc := lookup "v1" "Service" .Release.Namespace (printf "%s-ingress-nginx-controller" .Release.Name) }}
+{{- $svcName := ternary (printf "%s-traefik" .Release.Name) (printf "%s-ingress-nginx-controller" .Release.Name) (eq .Values.ingress.controller "traefik") }}
+{{- $ingressSvc := lookup "v1" "Service" .Release.Namespace $svcName }}
 {{- $ingressIP := "" }}
 {{- if $ingressSvc }}{{- $ingressIP = $ingressSvc.spec.clusterIP }}{{- end }}
 {{- /* needsCAInjection: true when we have a CA cert to append to the pod trust store */}}
