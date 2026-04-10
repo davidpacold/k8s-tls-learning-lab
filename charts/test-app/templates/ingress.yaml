@@ -22,8 +22,9 @@ spec:
     {{- end }}
   {{- if .Values.ingress.tls }}
   tls:
-    {{- range .Values.services }}
     - hosts:
+        {{- range .Values.services }}
         - {{ .host }}
-    {{- end }}
+        {{- end }}
+      secretName: {{ printf "%s-tls" .Release.Name }}
   {{- end }}
