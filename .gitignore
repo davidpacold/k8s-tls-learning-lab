@@ -1,0 +1,16 @@
+# Helm downloaded subcharts
+charts/*/charts/
+charts/*/.helmignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+.venv/
+venv/
+
+# macOS
+.DS_Store
