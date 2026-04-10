@@ -26,6 +26,8 @@ service:
 
 # Ingress configuration
 ingress:
+  controller: nginx   # "nginx" or "traefik"
+                      # When switching: also flip ingress-nginx.enabled / traefik.enabled below
   tls: true
 
   # --- Certificate mode (pick one) ---
@@ -45,10 +47,10 @@ ingress:
   #   Set generateCert: false, paste PEM content into externalCert.crt and externalCert.key.
   #   Helm creates the K8s Secret from these values.
 
-  # ssl-redirect controls whether nginx redirects HTTP → HTTPS (default: true).
-  # Set to false when TLS is terminated upstream (WAF, load balancer) — prevents
-  # the redirect loop that would otherwise occur when backend traffic arrives as HTTP.
-  sslRedirect: true
+  # ssl-redirect controls whether nginx redirects HTTP → HTTPS (default: false).
+  # false = port 80 and 443 both work simultaneously (default)
+  # true  = HTTP (80) redirects to HTTPS (443)
+  sslRedirect: false
 
   generateCert: false
   certDays: 3650         # self-signed cert validity in days (only used when generateCert: true)
@@ -74,8 +76,20 @@ ingress:
     P6N6Um9vmIg33cVzPTxulOfq6XMEW/LH7VEG5+dA9Q==
     -----END CERTIFICATE-----
 
-# ingress-nginx subchart overrides
+# ingress-nginx subchart — set enabled: false when switching to traefik
 ingress-nginx:
+  enabled: true
   controller:
     service:
       type: LoadBalancer
+
+# traefik subchart — set enabled: true when switching to traefik
+traefik:
+  enabled: false
+  ports:
+    web:
+      port: 80
+    websecure:
+      port: 443
+  service:
+    type: LoadBalancer
