@@ -47,7 +47,10 @@ ingress:
   #   Set generateCert: false, paste PEM content into externalCert.crt and externalCert.key.
   #   Helm creates the K8s Secret from these values.
 
-  # ssl-redirect controls whether nginx redirects HTTP → HTTPS (default: false).
+  # sslRedirect controls whether the ingress redirects HTTP → HTTPS (default: false).
+  # Applies to both controllers:
+  #   nginx:   adds nginx.ingress.kubernetes.io/ssl-redirect: "false" annotation
+  #   traefik: creates a redirectScheme Middleware on the HTTP entrypoint
   # false = port 80 and 443 both work simultaneously (default)
   # true  = HTTP (80) redirects to HTTPS (443)
   sslRedirect: false
