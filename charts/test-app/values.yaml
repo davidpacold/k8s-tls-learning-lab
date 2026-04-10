@@ -26,7 +26,8 @@ service:
 
 # Ingress configuration
 ingress:
-  tls: true              # uses nginx default fake cert (no secretName needed)
+  tls: true
+  certDays: 3650         # self-signed cert validity in days (default: 10 years)
 
 # ingress-nginx subchart overrides
 ingress-nginx:
