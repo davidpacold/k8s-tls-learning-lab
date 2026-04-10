@@ -296,6 +296,12 @@ This adds `nginx.ingress.kubernetes.io/ssl-redirect: "false"` to the Ingress ann
 
 The chart supports nginx and Traefik v3. Both are bundled as subchart dependencies — only the enabled one is installed.
 
+> **Helm CRD limitation:** When switching from nginx to Traefik on an existing release, Helm does not automatically install Traefik's CRDs (Helm only installs CRDs on a fresh `helm install`, not on `helm upgrade`). Apply them first:
+> ```bash
+> kubectl apply --server-side -f https://raw.githubusercontent.com/traefik/traefik/v3.6.12/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml
+> ```
+> This is a one-time step — once the CRDs are in the cluster, upgrades work normally.
+
 ### Switch to Traefik
 
 ```yaml
@@ -311,6 +317,9 @@ traefik:
 ```
 
 ```bash
+# Apply Traefik CRDs first (one-time, required when switching from nginx)
+kubectl apply --server-side -f https://raw.githubusercontent.com/traefik/traefik/v3.6.12/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml
+
 helm dep update charts/test-app
 helm upgrade --install test-app charts/test-app --namespace default --wait
 kubectl get ingressroute    # verify Traefik CRDs deployed
