@@ -15,9 +15,14 @@ build:
 dep-update:
 	helm dependency update $(CHART_DIR)
 
-## Install (or upgrade) the Helm release
+## Install (or upgrade) the Helm release.
+## Runs twice: first pass creates the ingress controller service, second pass
+## populates hostAliases now that the ClusterIP is available via lookup.
 install: dep-update
 	helm upgrade --install $(RELEASE) $(CHART_DIR) \
+		--namespace $(NAMESPACE) \
+		--wait --timeout 3m
+	helm upgrade $(RELEASE) $(CHART_DIR) \
 		--namespace $(NAMESPACE) \
 		--wait --timeout 3m
 

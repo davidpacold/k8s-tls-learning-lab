@@ -23,7 +23,7 @@ spec:
       labels:
         app: {{ $.Release.Name }}-{{ .name }}
     spec:
-      {{- if $ingressIP }}
+      {{- if and $ingressIP $.Values.ingress.injectHostAliases }}
       hostAliases:
         - ip: {{ $ingressIP }}
           hostnames:
@@ -43,7 +43,8 @@ spec:
               cp /etc/ssl/certs/ca-certificates.crt /updated-certs/ca-certificates.crt
               {{- if $.Values.ingress.corporateCA }}
               cat /corporate-ca/ca.crt >> /updated-certs/ca-certificates.crt
-              {{- else }}
+              {{- end }}
+              {{- if $.Values.ingress.generateCert }}
               cat /custom-cert/tls.crt >> /updated-certs/ca-certificates.crt
               {{- end }}
           volumeMounts:
@@ -51,7 +52,8 @@ spec:
             - name: corporate-ca
               mountPath: /corporate-ca
               readOnly: true
-            {{- else }}
+            {{- end }}
+            {{- if $.Values.ingress.generateCert }}
             - name: tls-cert
               mountPath: /custom-cert
               readOnly: true
@@ -81,7 +83,8 @@ spec:
         - name: corporate-ca
           configMap:
             name: {{ printf "%s-ca" $.Release.Name }}
-        {{- else }}
+        {{- end }}
+        {{- if $.Values.ingress.generateCert }}
         - name: tls-cert
           secret:
             secretName: {{ printf "%s-tls" $.Release.Name }}

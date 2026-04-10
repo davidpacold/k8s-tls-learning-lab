@@ -26,7 +26,7 @@ service:
 
 # Ingress configuration
 ingress:
-  controller: nginx   # "nginx" or "traefik"
+  controller: traefik   # "nginx" or "traefik"
                       # When switching: also flip ingress-nginx.enabled / traefik.enabled below
   tls: true
 
@@ -46,6 +46,12 @@ ingress:
   # Mode 3 — Paste cert into values
   #   Set generateCert: false, paste PEM content into externalCert.crt and externalCert.key.
   #   Helm creates the K8s Secret from these values.
+  #
+  # Mode 4 — Auto-generate cert + corporate CA (combined trust)
+  #   Set generateCert: true AND paste your root CA into corporateCA.
+  #   Helm generates the self-signed cert for the ingress (same as Mode 1).
+  #   Pod trust stores get BOTH: the self-signed cert (for pod-to-pod calls) AND
+  #   the corporate CA (for any other HTTPS calls that use certs signed by your CA).
 
   # sslRedirect controls whether the ingress redirects HTTP → HTTPS (default: false).
   # Applies to both controllers:
@@ -55,7 +61,12 @@ ingress:
   # true  = HTTP (80) redirects to HTTPS (443)
   sslRedirect: false
 
-  generateCert: false
+  # injectHostAliases controls whether pods get /etc/hosts entries for service hostnames.
+  # true  = pods can resolve api1.local etc. via the ingress ClusterIP (required for pod-to-pod calls)
+  # false = disable for environments where DNS already resolves these names (e.g. corporate DNS, WAF setups)
+  injectHostAliases: true
+
+  generateCert: true
   certDays: 3650         # self-signed cert validity in days (only used when generateCert: true)
 
   # Mode 3: paste PEM content here (leave empty for modes 1 and 2)
@@ -65,29 +76,20 @@ ingress:
 
   # Corporate / custom CA root cert for pod trust store injection.
   # Paste the PEM of your root or intermediate CA here.
-  # Used when generateCert: false — pods will trust any cert signed by this CA.
-  # Leave empty when generateCert: true (the self-signed cert itself is injected instead).
-  corporateCA: |
-    -----BEGIN CERTIFICATE-----
-    MIIBazCCARCgAwIBAgIQcVlu4tnpP1KZyH4jr0/UVTAKBggqhkjOPQQDAjAVMRMw
-    EQYDVQQDEwpNeSBSb290IENBMB4XDTI2MDMyMDAzNDUxNloXDTM2MDMyMDAzNDUx
-    NlowFTETMBEGA1UEAxMKTXkgUm9vdCBDQTBZMBMGByqGSM49AgEGCCqGSM49AwEH
-    A0IABNOMt0JGO1cl1/tFh9dRBUYBcPaX+EbgWyCCPodi1BRJzgGq1EM0+4OFyUAk
-    TbFwqTwGqdKWiP43p5RdXjrgra2jQjBAMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0P
-    AQH/BAQDAgEGMB0GA1UdDgQWBBRglJxYhFgFg2MlCgTddptDdZKUnzAKBggqhkjO
-    PQQDAgNJADBGAiEArHxP611Edry/76ZoBTaGO62KBRbzsTfUu98MkBsC5o4CIQDV
-    P6N6Um9vmIg33cVzPTxulOfq6XMEW/LH7VEG5+dA9Q==
-    -----END CERTIFICATE-----
+  # Modes 2 & 3: set this so pods trust certs signed by your CA.
+  # Mode 4: set this alongside generateCert: true — both the corporate CA and the
+  #   self-signed cert are appended to pod trust stores.
+  corporateCA: ""
 
 # ingress-nginx subchart — set enabled: false when switching to traefik
 ingress-nginx:
-  enabled: true
+  enabled: false
   controller:
     service:
       type: LoadBalancer
 
 # traefik subchart — set enabled: true when switching to traefik
 traefik:
-  enabled: false
+  enabled: true
   service:
     type: LoadBalancer

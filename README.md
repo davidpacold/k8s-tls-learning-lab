@@ -133,7 +133,7 @@ To add a fourth service, add one line to the list. No template changes needed.
 
 ## Certificate Modes
 
-The ingress supports three cert strategies. Pick whichever fits your situation.
+The ingress supports four cert strategies. Pick whichever fits your situation.
 
 ### Mode 1 — Auto-generate (default for local dev)
 
@@ -199,6 +199,27 @@ Helm creates the Kubernetes Secret from the pasted values. Useful when you have 
 
 ---
 
+### Mode 4 — Auto-generate cert + corporate CA (combined trust)
+
+```yaml
+ingress:
+  generateCert: true
+  certDays: 3650
+  corporateCA: |
+    -----BEGIN CERTIFICATE-----
+    <your root CA PEM>
+    -----END CERTIFICATE-----
+```
+
+Helm generates the self-signed cert for the ingress (same as Mode 1), but pods get **both** the self-signed cert and the corporate CA appended to their trust stores. Use this when:
+
+- Your cluster is in an environment where pods make outbound HTTPS calls to internal services signed by a corporate CA
+- You still want Helm to manage the ingress cert automatically
+
+The init container appends both CAs in order: corporate CA first, then the self-signed cert. Either trust relationship is honored by OpenSSL.
+
+---
+
 ## Pod TLS Trust — How Pods Verify the Cert
 
 TLS termination happens at the ingress, but pods still make HTTPS calls to each other (via the ingress — see [In-Cluster DNS](#in-cluster-dns)). For those calls to succeed without `-k`, pods need to trust the cert's issuer.
@@ -226,8 +247,9 @@ The shared volume is an `emptyDir` — it exists only for the lifetime of the po
 **Why this works for both Python and .NET:** Both runtimes on Linux use OpenSSL, which reads the system CA bundle. This is a system-level fix, not a language-specific one.
 
 **What gets injected:**
-- When `generateCert: true` → the self-signed cert itself is appended (pods trust that specific cert)
-- When `corporateCA` is set → the Root CA PEM is appended (pods trust any cert signed by that CA)
+- When `generateCert: true` → the self-signed cert is appended (pods trust that specific cert)
+- When `corporateCA` is set → the corporate CA PEM is appended (pods trust any cert signed by that CA)
+- Both can be set simultaneously (Mode 4) — both are appended, pods trust both
 
 ---
 
