@@ -27,7 +27,35 @@ service:
 # Ingress configuration
 ingress:
   tls: true
-  certDays: 3650         # self-signed cert validity in days (default: 10 years)
+
+  # --- Certificate mode (pick one) ---
+  #
+  # Mode 1 — Auto-generate self-signed cert (default)
+  #   Set generateCert: true. Helm creates a self-signed cert covering all service hosts.
+  #   Cert is stored as a K8s Secret and reused on helm upgrade.
+  #
+  # Mode 2 — Pre-created secret via kubectl
+  #   Set generateCert: false, leave externalCert.crt and externalCert.key empty.
+  #   Run before helm install:
+  #     kubectl create secret tls test-app-tls --cert=your.crt --key=your.key -n default
+  #
+  # Mode 3 — Paste cert into values
+  #   Set generateCert: false, paste PEM content into externalCert.crt and externalCert.key.
+  #   Helm creates the K8s Secret from these values.
+
+  generateCert: true
+  certDays: 3650         # self-signed cert validity in days (only used when generateCert: true)
+
+  # Mode 3: paste PEM content here (leave empty for modes 1 and 2)
+  externalCert:
+    crt: ""              # PEM cert  (-----BEGIN CERTIFICATE-----)
+    key: ""              # PEM key   (-----BEGIN PRIVATE KEY-----)
+
+  # Corporate / custom CA root cert for pod trust store injection.
+  # Paste the PEM of your root or intermediate CA here.
+  # Used when generateCert: false — pods will trust any cert signed by this CA.
+  # Leave empty when generateCert: true (the self-signed cert itself is injected instead).
+  corporateCA: ""
 
 # ingress-nginx subchart overrides
 ingress-nginx:

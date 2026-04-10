@@ -1,0 +1,13 @@
+{{- /* ------------------------------------------------------------------ */}}
+{{- /* Only rendered when a corporate/custom CA cert is provided.          */}}
+{{- /* Pods mount this and append it to their system CA bundle.            */}}
+{{- /* ------------------------------------------------------------------ */}}
+{{- if .Values.ingress.corporateCA }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-ca
+data:
+  ca.crt: |
+{{ .Values.ingress.corporateCA | indent 4 }}
+{{- end }}

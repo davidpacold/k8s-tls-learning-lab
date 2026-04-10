@@ -2,6 +2,8 @@
 {{- $ingressSvc := lookup "v1" "Service" .Release.Namespace (printf "%s-ingress-nginx-controller" .Release.Name) }}
 {{- $ingressIP := "" }}
 {{- if $ingressSvc }}{{- $ingressIP = $ingressSvc.spec.clusterIP }}{{- end }}
+{{- /* needsCAInjection: true when we have a CA cert to append to the pod trust store */}}
+{{- $needsCAInjection := or $.Values.ingress.corporateCA $.Values.ingress.generateCert }}
 {{- range .Values.services }}
 ---
 apiVersion: apps/v1
@@ -28,6 +30,7 @@ spec:
             - {{ .host }}
             {{- end }}
       {{- end }}
+      {{- if $needsCAInjection }}
       initContainers:
         - name: trust-ca
           image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
@@ -37,13 +40,24 @@ spec:
             - -c
             - |
               cp /etc/ssl/certs/ca-certificates.crt /updated-certs/ca-certificates.crt
+              {{- if $.Values.ingress.corporateCA }}
+              cat /corporate-ca/ca.crt >> /updated-certs/ca-certificates.crt
+              {{- else }}
               cat /custom-cert/tls.crt >> /updated-certs/ca-certificates.crt
+              {{- end }}
           volumeMounts:
+            {{- if $.Values.ingress.corporateCA }}
+            - name: corporate-ca
+              mountPath: /corporate-ca
+              readOnly: true
+            {{- else }}
             - name: tls-cert
               mountPath: /custom-cert
               readOnly: true
+            {{- end }}
             - name: ca-bundle
               mountPath: /updated-certs
+      {{- end }}
       containers:
         - name: api
           image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
@@ -53,18 +67,28 @@ spec:
           env:
             - name: SERVICE_NAME
               value: {{ .name | quote }}
+          {{- if $needsCAInjection }}
           volumeMounts:
             - name: ca-bundle
               mountPath: /etc/ssl/certs/ca-certificates.crt
               subPath: ca-certificates.crt
               readOnly: true
+          {{- end }}
+      {{- if $needsCAInjection }}
       volumes:
+        {{- if $.Values.ingress.corporateCA }}
+        - name: corporate-ca
+          configMap:
+            name: {{ printf "%s-ca" $.Release.Name }}
+        {{- else }}
         - name: tls-cert
           secret:
             secretName: {{ printf "%s-tls" $.Release.Name }}
             items:
               - key: tls.crt
                 path: tls.crt
+        {{- end }}
         - name: ca-bundle
           emptyDir: {}
+      {{- end }}
 {{- end }}
